@@ -8,9 +8,9 @@ test: shanghai.asm
 	slz P payload.bin payload.slz > /dev/null
 	cat loadm.bin kernel.raw payload.slz > shanghai2.bin
 ifneq ("$(wildcard /media/share1/COCO/drive3.dsk)","")
-	decb copy -r -2 -b shanghai2.bin /media/share1/COCO/drive3.dsk,LOADER.BIN
+	decb copy -r -2 -b shanghai2.bin /media/share1/COCO/drive3.dsk,SHANG2.BIN
 endif
 	rm -f redistribute/shanghai.dsk
 	decb dskini redistribute/shanghai.dsk
-	decb copy -r -2 -b shanghai2.bin redistribute/shanghai.dsk,LOADER.BIN
-	mv shanghai2.bin redistribute
+	decb copy -r -2 -b shanghai2.bin redistribute/shanghai.dsk,SHANG2.BIN
+	mv shanghai2.bin redistribute/SHANG2.BIN
