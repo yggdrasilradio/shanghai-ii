@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+
+#values = [0, 2, 3, 4, 5, 6, 7, 10, 12, 14, 32, 34, 35, 36, 37, 38, 39, 42, 44,
+#46, 48, 50, 51, 52, 53, 54, 55, 62, 64, 66, 67, 68, 69, 70, 71, 74, 78, 80, 82,
+#83, 84, 85, 86, 87, 90, 94, 96, 98, 99, 100, 101, 102, 103, 106, 110, 112, 114,
+#115, 116, 117, 118, 119, 122, 124, 126, 149, 160, 162, 165, 166, 170, 172, 174,
+#192, 197, 198, 199, 202, 204, 206, 224, 226, 227, 228, 229, 230, 231, 234,
+#236, 238]
+
+values = [ 0, 1, 2, 3, 4, 5, 6, 7, 10, 12, 14, 16, 17, 18, 21, 32, 33, 34, 35, 36,
+37, 38, 39, 42, 44, 46, 48, 49, 50, 51, 52, 53, 54, 55, 62, 64, 66, 67, 68, 69, 70,
+71, 74, 78, 80, 82, 83, 84, 85, 86, 87, 90, 94, 96, 98, 99, 100, 101, 102, 103, 106,
+110, 112, 114, 115, 116, 117, 118, 119, 122, 124, 126, 149, 160, 162, 165, 166, 170,
+172, 174, 192, 197, 198, 199, 202, 204, 206, 224, 226, 227, 228, 229, 230, 231, 234,
+236, 238]
+
+def FixColor(value):
+	if value == 13:
+		value = 14
+	if value == 15:
+		value = 10
+	return value
+
+def Fix(value):
+	color1 = int((value & 0xf0) / 16)
+	color2 = int(value & 0x0f)
+	value = (FixColor(color1) * 16) | FixColor(color2)
+	return value
+
+with open("victory.vef", "rb") as FILE:
+
+	# Throw away the header
+	bytedata = FILE.read(18)
+
+	# Everything else is pixel data
+	total = 0
+	for y in range(0, 200):
+
+		# Read this row
+		bytedata = bytearray(FILE.read(160))
+
+		# Swap colors
+		for i in range(160):
+			bytedata[i] = Fix(bytedata[i])
+
+		# Beginning address of this row
+		rowaddress = 0x8000 + (y * 160) - (8 * 160)
+
+		# Only process rows 16 through 181
+		#if y < 16 or y > 152:
+		if y < 16 or y > 181:
+			continue
+
+		begin = 0
+
+		# Leading NULs
+		for x in range(0, 160):
+			if bytedata[x] != 0:
+				begin = x
+				break
+
+		# Trailing NULs
+		for x in range(159, 0, -1):
+			if bytedata[x] != 0:
+				end = x
+				break
+
+		# Row token
+		print('* Row ' + str(y) + ':')
+		print(' FDB ' + hex(rowaddress + begin - 16))	# Starting address
+		print()
+		total += 2
+
+		# Output row data
+		print('* Row ' + str(y) + ' data:')
+		i = begin
+		while i <= end:
+
+			# Initial value
+			value = bytedata[i]
+
+			# Find length of run
+			length = 0
+			for j in range(i + 1, end + 1):
+				length += 1
+				if bytedata[j] != value:
+					break
+
+			value = values.index(value)
+			#if length <= 1:
+			if length < 3:
+
+				# One-byte token
+				print(' FCB ' + str(value))
+				i += 1
+				total += 1
+
+			else:
+
+				# Two-byte token
+				print(' FCB $80|' + str(value) + ',' + str(length))
+				i += length
+				total += 2
+	
+		# Signal end of row
+		print(' FCB 0xFF')
+		total += 1
+		print()
+
+
+# Total memory used by tokens and data (end of program can be up to 7DB7)
+print('* Total ' + str(total))

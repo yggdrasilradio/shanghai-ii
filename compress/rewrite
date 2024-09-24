@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+with open("title.bin", "wb") as OUTFILE:
+
+	with open("title.vef", "rb") as INFILE:
+
+		# Throw away the header
+		bytedata = INFILE.read(18)
+
+		# Everything else is pixel data
+		for i in range(0, 200):
+
+			# Print values for every byte in this row
+			bytedata = INFILE.read(160)
+			OUTFILE.write(bytedata)

@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+
+with open("victory.vef", "rb") as FILE:
+
+	bytedata = bytearray(FILE.read(18))
+	for i in range(18):
+		print(str(bytedata[i]))
